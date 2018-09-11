@@ -109,7 +109,7 @@ classdef EISFitting
         
         %get line color
         function obj = SetLineColor(obj)
-            numberOfSampleTypes=6;
+            numberOfSampleTypes=7;
             map=lines(numberOfSampleTypes);
             lineColor='black';
             switch obj.SampleType
@@ -125,6 +125,8 @@ classdef EISFitting
                     lineColor=map(5,:);
                 case '160x alumina-compressed'
                     lineColor=map(6,:);
+                case 'Li-scraped'
+                    lineColor=map(7,:);
             end
             obj.LineColor=lineColor;
             
@@ -136,7 +138,7 @@ classdef EISFitting
             hold on
             linecolors = jet(length(obj.Data));
             for i=1:1:length(obj.Data)
-                plot(obj.Data{i}(4:end,2)*obj.ohmcm2,obj.Data{i}(4:end,3)*obj.ohmcm2,'DisplayName',strcat(int2str(int16(obj.Data{i}(1,6)/60)),' min'),'color',linecolors(i,:))
+                plot(obj.Data{i}(4:end,23)*obj.ohmcm2,obj.Data{i}(4:end,24)*obj.ohmcm2,'DisplayName',strcat(int2str(int16(obj.Data{i}(1,6)/60)),' min'),'color',linecolors(i,:))
             end
             xlabel('Z_R_e (\Omega cm^{2})')
             ylabel('-Z_I_m (\Omega cm^{2})')
