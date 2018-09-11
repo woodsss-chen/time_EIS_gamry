@@ -92,10 +92,10 @@ classdef EISFitting
                         points=10:(length(obj.Data{i})-10);%which points to use. (Starting at 1 being the highest frequency point). empty vector uses all points
                 end
                 temp(:,1)=obj.Data{i}(:,1); %set the R values
-%                 temp(:,2)=obj.Data{i}(:,23); %working
-%                 temp(:,3)=-obj.Data{i}(:,24); %working
-                temp(:,2)=obj.Data{i}(:,19); %counter
-                temp(:,3)=-obj.Data{i}(:,20); %counter
+                temp(:,2)=obj.Data{i}(:,23); %working
+                temp(:,3)=-obj.Data{i}(:,24); %working
+%                 temp(:,2)=obj.Data{i}(:,19); %counter
+%                 temp(:,3)=-obj.Data{i}(:,20); %counter
                 obj.FitParams(i,:)=Zfit(temp,'z',circuit,param,points,'fitNP',LB,UB);
                 
                 
@@ -109,25 +109,10 @@ classdef EISFitting
         
         %get line color
         function obj = SetLineColor(obj)
-            numberOfSampleTypes=6;
+            numberOfSampleTypes = 8;
             map=lines(numberOfSampleTypes);
-            lineColor='black';
-            switch obj.SampleType
-                case 'Li-ALD-crack'
-                    lineColor=map(1,:);
-                case 'Li-AR-crack'
-                    lineColor=map(2,:);
-                case 'Li-AR-scrap'
-                    lineColor=map(3,:);
-                case 'Li-AR'
-                    lineColor=map(4,:);
-                case 'Li-ALD'
-                    lineColor=map(5,:);
-                case '20 nm'
-                    lineColor=map(6,:);
-            end
+            lineColor=map(obj.SampleType,:);
             obj.LineColor=lineColor;
-            
         end
         
         %Make Nyquist Plot normalized to Ohm cm2
@@ -141,14 +126,14 @@ classdef EISFitting
             xlabel('Z_R_e (\Omega cm^{2})')
             ylabel('-Z_I_m (\Omega cm^{2})')
             legend('show')
-            title(strcat(obj.SampleType,"   |   ",obj.Sample), 'interpreter', 'none')
+            title(obj.File_Names)
             hold off
         end
         
         
         %Plot total impedance vs time in ohm cm2
         function TotalImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',strcat(obj.SampleType,"   |   ",obj.Sample));
+            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber);
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -158,7 +143,7 @@ classdef EISFitting
         
         %Plot semicircle impedance vs time in ohm cm2
         function SemicircleImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',strcat(obj.SampleType,"   |   ",obj.Sample))
+            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber)
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -167,7 +152,7 @@ classdef EISFitting
         
         %Plot semicircle impedance vs time in ohm cm2
         function OhmicImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Zohmic*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',strcat(obj.SampleType,"   |   ",obj.Sample))
+            plot(obj.Time/60,obj.Zohmic*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber)
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -177,7 +162,7 @@ classdef EISFitting
         %Plot change in semicircle impedence vs time in ohm cm2
         function ChangeSemicircleImpedanceOhmcm2(obj)
             DeltaZsemicircle = obj.Zsemicircle - obj.Zsemicircle(1);
-            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',strcat(obj.SampleType,"   |   ",obj.Sample))
+            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber)
             xlabel('Time (min)')
             ylabel('Delta Impedance (\Omega cm^{2})')
             legend('show')
