@@ -81,19 +81,21 @@ classdef EISFitting
             switch obj.SampleType
                 otherwise
                     lastpoint = length(obj.Data{1})-15;
-                    param=[obj.Data{1}(5,23),   obj.Data{1}(lastpoint,23), 1e-6,.7];
-                    LB=   [obj.Data{1}(5,23)-150,   obj.Data{1}(lastpoint,23)-400, 1e-8,.6];
-                    UB=   [obj.Data{1}(5,23)+100,   obj.Data{1}(lastpoint,23)+5000, 1e-5,1];
+                    LBstart = max(obj.Data{1}(5,2)-150,0);
+                    LBend = max(obj.Data{1}(lastpoint,2)-400,0);
+                    param=[obj.Data{1}(5,2),   obj.Data{1}(lastpoint,2), 1e-6,.7];
+                    LB=   [LBstart,  LBend, 1e-8,.6];
+                    UB=   [obj.Data{1}(5,2)+100,   obj.Data{1}(lastpoint,2)+5000, 1e-5,1];
             end
             
             for i=1:length(obj.Data)
                 switch obj.SampleType
                     otherwise
-                        points=10:(length(obj.Data{i})-10);%which points to use. (Starting at 1 being the highest frequency point). empty vector uses all points
+                        points=10:(length(obj.Data{i})-15);%which points to use. (Starting at 1 being the highest frequency point). empty vector uses all points
                 end
                 temp(:,1)=obj.Data{i}(:,1); %set the R values
-                temp(:,2)=obj.Data{i}(:,23); %working
-                temp(:,3)=-obj.Data{i}(:,24); %working
+                temp(:,2)=obj.Data{i}(:,2); %working
+                temp(:,3)=-obj.Data{i}(:,3); %working
 %                 temp(:,2)=obj.Data{i}(:,19); %counter
 %                 temp(:,3)=-obj.Data{i}(:,20); %counter
                 obj.FitParams(i,:)=Zfit(temp,'z',circuit,param,points,'fitNP',LB,UB);
@@ -138,7 +140,7 @@ classdef EISFitting
             hold on
             linecolors = jet(length(obj.Data));
             for i=1:1:length(obj.Data)
-                plot(obj.Data{i}(4:end,23)*obj.ohmcm2,obj.Data{i}(4:end,24)*obj.ohmcm2,'DisplayName',strcat(int2str(int16(obj.Data{i}(1,6)/60)),' min'),'color',linecolors(i,:))
+                plot(obj.Data{i}(4:end,2)*obj.ohmcm2,obj.Data{i}(4:end,3)*obj.ohmcm2,'DisplayName',strcat(int2str(int16(obj.Data{i}(1,6)/60)),' min'),'color',linecolors(i,:))
             end
             xlabel('Z_R_e (\Omega cm^{2})')
             ylabel('-Z_I_m (\Omega cm^{2})')
