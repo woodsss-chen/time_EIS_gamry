@@ -109,10 +109,25 @@ classdef EISFitting
         
         %get line color
         function obj = SetLineColor(obj)
-            numberOfSampleTypes = 8;
+            numberOfSampleTypes=6;
             map=lines(numberOfSampleTypes);
-            lineColor=map(obj.SampleType,:);
+            lineColor='black';
+            switch obj.SampleType
+                case 'LTO1'
+                    lineColor=map(1,:);
+                case 'LTO2'
+                    lineColor=map(2,:);
+                case 'Li-as recieved'
+                    lineColor=map(3,:);
+                case 'Li-compressed'
+                    lineColor=map(4,:);
+                case '160x alumina'
+                    lineColor=map(5,:);
+                case '160x alumina-compressed'
+                    lineColor=map(6,:);
+            end
             obj.LineColor=lineColor;
+            
         end
         
         %Make Nyquist Plot normalized to Ohm cm2
@@ -126,14 +141,14 @@ classdef EISFitting
             xlabel('Z_R_e (\Omega cm^{2})')
             ylabel('-Z_I_m (\Omega cm^{2})')
             legend('show')
-            title(obj.File_Names)
+            title(strcat(obj.SampleType,"   |   ",obj.Sample), 'interpreter', 'none')
             hold off
         end
         
         
         %Plot total impedance vs time in ohm cm2
         function TotalImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber);
+            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType);
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -143,7 +158,7 @@ classdef EISFitting
         
         %Plot semicircle impedance vs time in ohm cm2
         function SemicircleImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber)
+            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -152,17 +167,16 @@ classdef EISFitting
         
         %Plot semicircle impedance vs time in ohm cm2
         function OhmicImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Zohmic*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber)
+            plot(obj.Time/60,obj.Zohmic*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
             title('Ohmic Impedance vs Time')
         end
         
-        %Plot change in semicircle impedence vs time in ohm cm2
         function ChangeSemicircleImpedanceOhmcm2(obj)
             DeltaZsemicircle = obj.Zsemicircle - obj.Zsemicircle(1);
-            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.FileNameBeforeNumber)
+            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Delta Impedance (\Omega cm^{2})')
             legend('show')
