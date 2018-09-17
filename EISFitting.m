@@ -111,7 +111,7 @@ classdef EISFitting
         
         %get line color
         function obj = SetLineColor(obj)
-            numberOfSampleTypes=7;
+            numberOfSampleTypes=11;
             map=lines(numberOfSampleTypes);
             lineColor='black';
             switch obj.SampleType
@@ -129,6 +129,14 @@ classdef EISFitting
                     lineColor=map(6,:);
                 case 'Li-scraped'
                     lineColor=map(7,:);
+                case '160x alumina-3strokes'
+                    lineColor=map(8,:);
+                case 'B'
+                    lineColor=map(9,:);
+                case 'C'
+                    lineColor=map(10,:);
+                case 'D'
+                    lineColor=map(11,:);
             end
             obj.LineColor=lineColor;
             
