@@ -80,12 +80,12 @@ classdef EISFitting
             circuit='s(R1,p(R1,E2))';%element in the circuit followed by number of parameters. i.e. E2 is a CPE which has two parameters (C and alpha)
             switch obj.SampleType
                 otherwise
-                    lastpoint = length(obj.Data{1})-15;
-                    LBstart = max(obj.Data{1}(5,2)-150,0);
+                    lastpoint = length(obj.Data{1})-10;
+                    LBstart = max(obj.Data{1}(5,2)-250,0);
                     LBend = max(obj.Data{1}(lastpoint,2)-400,0);
                     param=[obj.Data{1}(5,2),   obj.Data{1}(lastpoint,2), 1e-6,.7];
                     LB=   [LBstart,  LBend, 1e-8,.6];
-                    UB=   [obj.Data{1}(5,2)+100,   obj.Data{1}(lastpoint,2)+5000, 1e-5,1];
+                    UB=   [obj.Data{1}(5,2)+200,   obj.Data{1}(lastpoint,2)+5000, 1e-5,1];
             end
             
             for i=1:length(obj.Data)
@@ -195,6 +195,9 @@ classdef EISFitting
             title('Change in Semicircle Impedance vs Time')
         end
         
+        function GetSampleType(obj)
+           disp(obj.SampleType);
+        end
     end
     
 end
