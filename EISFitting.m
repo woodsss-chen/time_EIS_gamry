@@ -82,7 +82,7 @@ classdef EISFitting
                 otherwise
                     lastpoint = length(obj.Data{1})-10;
                     LBstart = max(obj.Data{1}(5,2)-250,0);
-                    LBend = max(obj.Data{1}(lastpoint,2)-400,0);
+                    LBend = max(obj.Data{1}(lastpoint,2)-1000,0);
                     param=[obj.Data{1}(5,2),   obj.Data{1}(lastpoint,2), 1e-6,.7];
                     LB=   [LBstart,  LBend, 1e-8,.6];
                     UB=   [obj.Data{1}(5,2)+200,   obj.Data{1}(lastpoint,2)+5000, 1e-5,1];
@@ -117,9 +117,9 @@ classdef EISFitting
             switch obj.SampleType
                 case 'LTO1'
                     lineColor=map(1,:);
-                case 'LTO2'
+                case 'Li-as recieved 2'
                     lineColor=map(2,:);
-                case 'Li-as recieved'
+                case 'Li-as recieved 1'
                     lineColor=map(3,:);
                 case 'Li-compressed'
                     lineColor=map(4,:);
