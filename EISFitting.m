@@ -11,7 +11,7 @@ classdef EISFitting
         File_Names          %Names (including relative locations) of all files associated with the sample
         DataFolder
         FileName
-        EIS_File_Numbers    %Index to show if the EIS is taken before or after cell cycling
+        Electrode_Type      %Working/Counter Electrode (WE and CE)
         Num_fit_points      %Number of points to use in the fit ie. 75
         Data                %Data for each EIS run. Data{eis_run}
         Zohmic
@@ -20,12 +20,13 @@ classdef EISFitting
         Cinterface          %Interface capacitance
         Cbulk               %Bulk capacitance
         Time                %Starting time of each EIS measurement in seconds
-        LineColor           %Color for lines in plots
+        LineColor           %Color for lines in plots 
+        LineType            %Line type for the plots, solid line for working electrode, dashed line for counter
     end
     
     methods
         %Initialize values get filenames, sort data, and calculate densities
-        function obj = EISFitting(Sample, SampleType,DataDirectory ,DataFolder, FileName, Size, EIS_file_numbers)
+        function obj = EISFitting(Sample, SampleType,DataDirectory ,DataFolder, FileName, Size, Electrode_Type)
             if nargin > 0
                 if isnumeric([Size])
                     disp([Sample ' ' SampleType])
@@ -33,8 +34,16 @@ classdef EISFitting
                     obj.SampleType = SampleType;
                     obj.DataFolder = strcat(DataDirectory, '/', DataFolder);
                     obj.FileName = FileName;
-                    obj.EIS_File_Numbers = EIS_file_numbers;
+                    obj.Electrode_Type = Electrode_Type;
                     obj.ohmcm2=Size;
+                    SetLineType = '.-';
+                    switch Electrode_Type
+                        case 'WE'
+                            SetLineType = '-';
+                        case 'CE'
+                            SetLineType = '--';
+                    end
+                    obj.LineType = SetLineType;
                     
                     filename=strcat(obj.DataFolder,'\',obj.FileName,'.mpt');
                     fid = fopen(filename,'r');
@@ -74,14 +83,21 @@ classdef EISFitting
         %get's fit paramaters for the quivalent circuit
         function obj = runFit(obj)
             circuit='s(R1,p(R1,E2))';%element in the circuit followed by number of parameters. i.e. E2 is a CPE which has two parameters (C and alpha)
+            if obj.Electrode_Type == 'WE'
+                RE = 2;
+                IM = 3;
+            else
+                RE = 19;
+                IM = 20;
+            end
             switch obj.SampleType
                 otherwise
                     lastpoint = length(obj.Data{1})-10;
-                    LBstart = max(obj.Data{1}(5,2)-250,0);
-                    LBend = max(obj.Data{1}(lastpoint,2)-1000,0);
-                    param=[obj.Data{1}(5,2),   obj.Data{1}(lastpoint,2), 1e-6,.7];
+                    LBstart = max(obj.Data{1}(5,RE)-250,0);
+                    LBend = max(obj.Data{1}(lastpoint,RE)-1000,0);
+                    param=[obj.Data{1}(5,RE),   obj.Data{1}(lastpoint,RE), 1e-6,.7];
                     LB=   [LBstart,  LBend, 1e-8,.6];
-                    UB=   [obj.Data{1}(5,2)+500,   obj.Data{1}(lastpoint,2)+5000, 1e-5,1];
+                    UB=   [obj.Data{1}(5,RE)+500,   obj.Data{1}(lastpoint,RE)+5000, 1e-5,1];
             end
             
             for i=1:length(obj.Data)
@@ -90,10 +106,8 @@ classdef EISFitting
                         points=10:(length(obj.Data{i})-15);%which points to use. (Starting at 1 being the highest frequency point). empty vector uses all points
                 end
                 temp(:,1)=obj.Data{i}(:,1); %set the R values
-                temp(:,2)=obj.Data{i}(:,2); %working
-                temp(:,3)=-obj.Data{i}(:,3); %working
-                %                 temp(:,2)=obj.Data{i}(:,19); %counter
-                %                 temp(:,3)=-obj.Data{i}(:,20); %counter
+                temp(:,2)=obj.Data{i}(:,RE);
+                temp(:,3)=-obj.Data{i}(:,IM);
                 obj.FitParams(i,:)=Zfit(temp,'z',circuit,param,points,'fitNP',LB,UB);
                 
                 
@@ -144,7 +158,7 @@ classdef EISFitting
             hold on
             linecolors = jet(length(obj.Data));
             for i=1:1:length(obj.Data)
-                plot(obj.Data{i}(4:end,2)*obj.ohmcm2,obj.Data{i}(4:end,3)*obj.ohmcm2,'DisplayName',strcat(int2str(int16(obj.Data{i}(1,6)/60)),' min'),'color',linecolors(i,:))
+                plot(obj.Data{i}(4:end,2)*obj.ohmcm2,obj.Data{i}(4:end,3)*obj.ohmcm2,obj.LineType,'DisplayName',strcat(int2str(int16(obj.Data{i}(1,6)/60)),' min'),'color',linecolors(i,:))
             end
             xlabel('Z_R_e (\Omega cm^{2})')
             ylabel('-Z_I_m (\Omega cm^{2})')
@@ -156,12 +170,7 @@ classdef EISFitting
         
         %Plot total impedance vs time in ohm cm2
         function TotalImpedanceOhmcm2(obj)
-            if obj.EIS_File_Numbers == 1
-               LineType = '-';
-            else
-                LineType ='-x';
-            end
-            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType);
+            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,obj.LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType);
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -171,12 +180,7 @@ classdef EISFitting
         
         %Plot semicircle impedance vs time in ohm cm2
         function SemicircleImpedanceOhmcm2(obj)
-            if obj.EIS_File_Numbers == 1
-               LineType = '-';
-            else
-                LineType ='-x';
-            end
-            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
+            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,obj.LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -185,7 +189,7 @@ classdef EISFitting
         
         %Plot semicircle impedance vs time in ohm cm2
         function OhmicImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Zohmic*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
+            plot(obj.Time/60,obj.Zohmic*obj.ohmcm2,obj.LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -193,13 +197,8 @@ classdef EISFitting
         end
         
         function ChangeSemicircleImpedanceOhmcm2(obj)
-            if obj.EIS_File_Numbers == 1
-               LineType = '-';
-            else
-                LineType ='--';
-            end
             DeltaZsemicircle = obj.Zsemicircle - obj.Zsemicircle(1);
-            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
+            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,obj.LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Delta Impedance (\Omega cm^{2})')
             legend('show')
