@@ -10,9 +10,8 @@ classdef EISFitting
         ohmcm2              %factor to normalize to ohm*cm2
         File_Names          %Names (including relative locations) of all files associated with the sample
         DataFolder
-        FileNameBeforeNumber
-        FileNameAfterNumber
-        EIS_File_Numbers    %Numbers in the filenames for each PEIS run
+        FileName
+        EIS_File_Numbers    %Index to show if the EIS is taken before or after cell cycling
         Num_fit_points      %Number of points to use in the fit ie. 75
         Data                %Data for each EIS run. Data{eis_run}
         Zohmic
@@ -26,45 +25,42 @@ classdef EISFitting
     
     methods
         %Initialize values get filenames, sort data, and calculate densities
-        function obj = EISFitting(Sample, SampleType,DataDirectory ,DataFolder, FileNameBeforeNumber, FileNameAfterNumber, Size, EIS_file_numbers)
+        function obj = EISFitting(Sample, SampleType,DataDirectory ,DataFolder, FileName, Size, EIS_file_numbers)
             if nargin > 0
                 if isnumeric([Size])
                     disp([Sample ' ' SampleType])
                     obj.Sample = Sample;
                     obj.SampleType = SampleType;
                     obj.DataFolder = strcat(DataDirectory, '/', DataFolder);
-                    obj.FileNameBeforeNumber = FileNameBeforeNumber;
-                    obj.FileNameAfterNumber = FileNameAfterNumber;
+                    obj.FileName = FileName;
                     obj.EIS_File_Numbers = EIS_file_numbers;
                     obj.ohmcm2=Size;
                     
-                    for i=1:length(obj.EIS_File_Numbers) %Get data from each of the files
-                        filename=strcat(obj.DataFolder,'\',obj.FileNameBeforeNumber,int2str(obj.EIS_File_Numbers(i)),obj.FileNameAfterNumber);
-                        fid = fopen(filename,'r');
-                        s = textscan(fid, '%s', 'delimiter', '\n');
-                        firstLine = find(strncmp(s{1}, 'freq',4), 1, 'first');
-                        fclose(fid);
-                        allData = dlmread(filename,'\t',firstLine,0);
-                        
-                        fLast=inf;
-                        freqIterator=1;
-                        newRun(freqIterator)=0;
-                        for j=1:length(allData(:,1))
-                            f=allData(j,1);
-                            if f>fLast
-                                freqIterator=freqIterator+1;
-                                newRun(freqIterator)=j-1;
-                            end
-                            fLast=f;
+                    filename=strcat(obj.DataFolder,'\',obj.FileName,'.mpt');
+                    fid = fopen(filename,'r');
+                    s = textscan(fid, '%s', 'delimiter', '\n');
+                    firstLine = find(strncmp(s{1}, 'freq',4), 1, 'first');
+                    fclose(fid);
+                    allData = dlmread(filename,'\t',firstLine,0);
+                    
+                    fLast=inf;
+                    freqIterator=1;
+                    newRun(freqIterator)=0;
+                    for j=1:length(allData(:,1))
+                        f=allData(j,1);
+                        if f>fLast
+                            freqIterator=freqIterator+1;
+                            newRun(freqIterator)=j-1;
                         end
-                        newRun(freqIterator+1)=length(allData(:,1));
-                        
-                        for j=1:freqIterator
-                            obj.Data{end+1}=allData(newRun(j)+1:newRun(j+1),:);
-                            obj.Time(end+1)=obj.Data{end}(1,6);
-                        end
-                        obj.File_Names{i}=filename;
+                        fLast=f;
                     end
+                    newRun(freqIterator+1)=length(allData(:,1));
+                    
+                    for j=1:freqIterator
+                        obj.Data{end+1}=allData(newRun(j)+1:newRun(j+1),:);
+                        obj.Time(end+1)=obj.Data{end}(1,6);
+                    end
+                    obj.File_Names = filename;
                     obj = SetLineColor(obj);
                     obj = runFit(obj);
                 else
@@ -85,7 +81,7 @@ classdef EISFitting
                     LBend = max(obj.Data{1}(lastpoint,2)-1000,0);
                     param=[obj.Data{1}(5,2),   obj.Data{1}(lastpoint,2), 1e-6,.7];
                     LB=   [LBstart,  LBend, 1e-8,.6];
-                    UB=   [obj.Data{1}(5,2)+200,   obj.Data{1}(lastpoint,2)+5000, 1e-5,1];
+                    UB=   [obj.Data{1}(5,2)+500,   obj.Data{1}(lastpoint,2)+5000, 1e-5,1];
             end
             
             for i=1:length(obj.Data)
@@ -96,8 +92,8 @@ classdef EISFitting
                 temp(:,1)=obj.Data{i}(:,1); %set the R values
                 temp(:,2)=obj.Data{i}(:,2); %working
                 temp(:,3)=-obj.Data{i}(:,3); %working
-%                 temp(:,2)=obj.Data{i}(:,19); %counter
-%                 temp(:,3)=-obj.Data{i}(:,20); %counter
+                %                 temp(:,2)=obj.Data{i}(:,19); %counter
+                %                 temp(:,3)=-obj.Data{i}(:,20); %counter
                 obj.FitParams(i,:)=Zfit(temp,'z',circuit,param,points,'fitNP',LB,UB);
                 
                 
@@ -160,7 +156,12 @@ classdef EISFitting
         
         %Plot total impedance vs time in ohm cm2
         function TotalImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType);
+            if obj.EIS_File_Numbers == 1
+               LineType = '-';
+            else
+                LineType ='-x';
+            end
+            plot(obj.Time/60,obj.Ztotal*obj.ohmcm2,LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType);
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -170,7 +171,12 @@ classdef EISFitting
         
         %Plot semicircle impedance vs time in ohm cm2
         function SemicircleImpedanceOhmcm2(obj)
-            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
+            if obj.EIS_File_Numbers == 1
+               LineType = '-';
+            else
+                LineType ='-x';
+            end
+            plot(obj.Time/60,obj.Zsemicircle*obj.ohmcm2,LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Impedance (\Omega cm^{2})')
             legend('show')
@@ -187,8 +193,13 @@ classdef EISFitting
         end
         
         function ChangeSemicircleImpedanceOhmcm2(obj)
+            if obj.EIS_File_Numbers == 1
+               LineType = '-';
+            else
+                LineType ='--';
+            end
             DeltaZsemicircle = obj.Zsemicircle - obj.Zsemicircle(1);
-            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
+            plot(obj.Time/60,DeltaZsemicircle*obj.ohmcm2,LineType,'Color',obj.LineColor,'LineWidth',1.5,'DisplayName',obj.SampleType)
             xlabel('Time (min)')
             ylabel('Delta Impedance (\Omega cm^{2})')
             legend('show')
@@ -196,7 +207,7 @@ classdef EISFitting
         end
         
         function GetSampleType(obj)
-           disp(obj.SampleType);
+            disp(obj.SampleType);
         end
     end
     
