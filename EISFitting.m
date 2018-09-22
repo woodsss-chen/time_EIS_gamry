@@ -93,17 +93,17 @@ classdef EISFitting
             switch obj.SampleType
                 otherwise
                     lastpoint = length(obj.Data{1})-10;
-                    LBstart = max(obj.Data{1}(5,RE)-250,0);
-                    LBend = max(obj.Data{1}(lastpoint,RE)-1000,0);
+                    LBstart = max(obj.Data{1}(5,RE)-500,0);
+                    LBend = max(obj.Data{1}(lastpoint,RE)-5000,0);
                     param=[obj.Data{1}(5,RE),   obj.Data{1}(lastpoint,RE), 1e-6,.7];
                     LB=   [LBstart,  LBend, 1e-8,.6];
-                    UB=   [obj.Data{1}(5,RE)+500,   obj.Data{1}(lastpoint,RE)+5000, 1e-5,1];
+                    UB=   [obj.Data{1}(5,RE)+500,   obj.Data{1}(lastpoint,RE)+10000, 1e-5,1];
             end
             
             for i=1:length(obj.Data)
                 switch obj.SampleType
                     otherwise
-                        points=10:(length(obj.Data{i})-15);%which points to use. (Starting at 1 being the highest frequency point). empty vector uses all points
+                        points=10:(length(obj.Data{i})-8);%which points to use. (Starting at 1 being the highest frequency point). empty vector uses all points
                 end
                 temp(:,1)=obj.Data{i}(:,1); %set the R values
                 temp(:,2)=obj.Data{i}(:,RE);
@@ -121,32 +121,22 @@ classdef EISFitting
         
         %get line color
         function obj = SetLineColor(obj)
-            numberOfSampleTypes=11;
+            numberOfSampleTypes=7;
             map=lines(numberOfSampleTypes);
             lineColor='black';
             switch obj.SampleType
-                case 'LTO1'
+                case 'Li-as recieved 1'
                     lineColor=map(1,:);
                 case 'Li-as recieved 2'
                     lineColor=map(2,:);
-                case 'Li-as recieved 1'
+                case 'Li-as recieved 4'
                     lineColor=map(3,:);
-                case 'Li-compressed'
+                case 'Li-as recieved 5'
                     lineColor=map(4,:);
-                case '160x alumina'
+                case 'Li-as recieved 6'
                     lineColor=map(5,:);
-                case '160x alumina-compressed'
+                case 'Li-as recieved 7'
                     lineColor=map(6,:);
-                case 'Li-scraped'
-                    lineColor=map(7,:);
-                case '160x alumina-3strokes'
-                    lineColor=map(8,:);
-                case 'B'
-                    lineColor=map(9,:);
-                case 'C'
-                    lineColor=map(10,:);
-                case 'D'
-                    lineColor=map(11,:);
             end
             obj.LineColor=lineColor;
             
