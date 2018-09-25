@@ -7,6 +7,7 @@ classdef EISFitting
         Sigma
     end
     properties
+        Exp_Section         %First or second half of exp
         ohmcm2              %factor to normalize to ohm*cm2
         File_Names          %Names (including relative locations) of all files associated with the sample
         DataFolder
@@ -26,7 +27,7 @@ classdef EISFitting
     
     methods
         %Initialize values get filenames, sort data, and calculate densities
-        function obj = EISFitting(Sample, SampleType,DataDirectory ,DataFolder, FileName, Size, Electrode_Type)
+        function obj = EISFitting(Sample, SampleType,DataDirectory ,DataFolder, FileName, Size, Electrode_Type, Exp_Section)
             if nargin > 0
                 if isnumeric([Size])
                     disp([Sample ' ' SampleType])
@@ -36,6 +37,7 @@ classdef EISFitting
                     obj.FileName = FileName;
                     obj.Electrode_Type = Electrode_Type;
                     obj.ohmcm2=Size;
+                    obj.Exp_Section = Exp_Section;
                     SetLineType = '.-';
                     switch Electrode_Type
                         case 'WE'
@@ -97,7 +99,7 @@ classdef EISFitting
                     LBend = max(obj.Data{1}(lastpoint,RE)-5000,0);
                     param=[obj.Data{1}(5,RE),   obj.Data{1}(lastpoint,RE), 1e-6,.7];
                     LB=   [LBstart,  LBend, 1e-8,.6];
-                    UB=   [obj.Data{1}(5,RE)+500,   obj.Data{1}(lastpoint,RE)+10000, 1e-5,1];
+                    UB=   [obj.Data{1}(5,RE)+500,   obj.Data{1}(lastpoint,RE)+20000, 1e-5,1];
             end
             
             for i=1:length(obj.Data)
@@ -125,18 +127,20 @@ classdef EISFitting
             map=lines(numberOfSampleTypes);
             lineColor='black';
             switch obj.SampleType
-                case 'Li-as recieved 1'
+                case 'ALD 1'
                     lineColor=map(1,:);
-                case 'Li-as recieved 2'
+                case 'ALD 2'
                     lineColor=map(2,:);
-                case 'Li-as recieved 4'
+                case 'ALD 3'
                     lineColor=map(3,:);
-                case 'Li-as recieved 5'
+                case 'Li-as recieved 9'
                     lineColor=map(4,:);
-                case 'Li-as recieved 6'
+                case 'ALD-3 strokes'
                     lineColor=map(5,:);
-                case 'Li-as recieved 7'
+                case 'as recieved-3 strokes'
                     lineColor=map(6,:);
+                case 'ALD-5 strokes'
+                    lineColor=map(7,:);
             end
             obj.LineColor=lineColor;
             
