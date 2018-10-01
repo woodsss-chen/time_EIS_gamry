@@ -17,6 +17,7 @@ classdef EISFitting
         Data                %Data for each EIS run. Data{eis_run}
         Zohmic
         Zsemicircle
+        Zct
         Ztotal              %Total impedance (not normalized)
         Cinterface          %Interface capacitance
         Cbulk               %Bulk capacitance
@@ -84,7 +85,7 @@ classdef EISFitting
         
         %get's fit paramaters for the quivalent circuit
         function obj = runFit(obj)
-            circuit='s(R1,p(R1,E2))';%element in the circuit followed by number of parameters. i.e. E2 is a CPE which has two parameters (C and alpha)
+            circuit='s(R1,s(p(R1,E2),p(R1,E2)))';%element in the circuit followed by number of parameters. i.e. E2 is a CPE which has two parameters (C and alpha)
             if obj.Electrode_Type == 'WE'
                 RE = 2;
                 IM = 3;
@@ -97,9 +98,11 @@ classdef EISFitting
                     lastpoint = length(obj.Data{1})-10;
                     LBstart = max(obj.Data{1}(5,RE)-500,0);
                     LBend = max(obj.Data{1}(lastpoint,RE)-5000,0);
-                    param=[obj.Data{1}(5,RE),   obj.Data{1}(lastpoint,RE), 1e-6,.7];
-                    LB=   [LBstart,  LBend, 1e-8,.6];
-                    UB=   [obj.Data{1}(5,RE)+500,   obj.Data{1}(lastpoint,RE)+20000, 1e-5,1];
+                    UBstart = obj.Data{1}(5,RE)+500;
+                    UBend = obj.Data{1}(lastpoint,RE)+20000;
+                    param=[obj.Data{1}(5,RE),   (obj.Data{1}(lastpoint,RE)+obj.Data{1}(5,RE))/2 , 1e-6,.7, obj.Data{1}(lastpoint,RE), 1e-6,.7];
+                    LB=   [LBstart,  (LBstart+LBend)/2, 1e-8,.6, LBend, 1e-8,.6,];
+                    UB=   [UBstart,  (UBstart+UBend)/2, 1e-5,1, UBend,1e-5,1];
             end
             
             for i=1:length(obj.Data)
@@ -115,7 +118,8 @@ classdef EISFitting
                 
                 obj.Zohmic(i)=obj.FitParams(i,1);
                 obj.Zsemicircle(i)=obj.FitParams(i,2);
-                obj.Ztotal(i)=obj.FitParams(i,1)+obj.FitParams(i,2);
+                obj.Ztotal(i)=obj.FitParams(i,1)+obj.FitParams(i,2)+obj.FitParams(i,5);
+                obj.Zct(i)=obj.FitParams(i,5);
                 drawnow
                 
             end

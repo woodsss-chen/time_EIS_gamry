@@ -1,7 +1,7 @@
 clear;
 close all;
 
-load('20180922.mat');
+load('20180922_CT.mat');
 dir = 'G:\My Drive\Dasgupta Research Group\Battery Subgroup\Data Characterization\ALD mechanics Yuxin\20180921_EIS';
 samples{1} = EISFitting('1', 'Li-as recieved 8', dir , 'Li-Li-Pt_8', '20180921_Li-Li-Pt_8_gamry_01_PEIS', 0.5,  'WE', 1);
 samples{2} = EISFitting('1', 'Li-as recieved 8', dir , 'Li-Li-Pt_8', '20180921_Li-Li-Pt_8_gamry_05_PEIS', 0.5,  'WE', 2);
@@ -36,7 +36,7 @@ samples{30} = EISFitting('1', 'ALD-5 strokes', dir , '5s-5s-Pt_1', '20180921_5s-
 samples{31} = EISFitting('1', 'ALD-5 strokes', dir , '5s-5s-Pt_1', '20180921_5s-5s-Pt_1_gamry_01_PEIS', 0.5,  'CE', 1);
 samples{32} = EISFitting('1', 'ALD-5 strokes', dir , '5s-5s-Pt_1', '20180921_5s-5s-Pt_1_gamry_05_PEIS', 0.5,  'CE', 2);
 
-save('20180922.mat')
+save('20180922_CT.mat')
 % 
 % % xmin=0;
 % % xmax=2500;
